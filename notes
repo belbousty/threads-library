@@ -1,0 +1,34 @@
+uc_link: 
+        When a thread creates a new thread using thread_create(), the ucontext_t structure 
+        of the new thread is initialized with a copy of the current thread's context, 
+        including the uc_link field. The uc_link field of the new thread's context is set to 
+        point back to the current thread's context. This means that when the new thread exits, 
+        its context is automatically cleaned up and the context pointed to by uc_link is restored.
+
+thread_join:
+        In the thread_join() function, the swapcontext() call is used to switch to the context 
+        of the target thread and start executing it.When the target thread finishes executing and returns,
+        its context is automatically cleaned up and the context pointed to by uc_link is restored.
+
+
+thread_exit:
+        the pointer to a "ucontext_t" uc is used create a new context to switch to after the current 
+        thread has exited. We use getcontext() to get the current thread's context and save 
+        it in uc. 
+        - uc_link field of the context to NULL we don't want the calling thread's context 
+        to be restored when the new context is switched to.
+        -  The SIGSTKSZ constant is used to specify the size of the stack. 
+        -  ss_size and ss_flags fields specify the size and flags of the new stack
+        -  We use makecontext() to set up the new context's program counter (PC) to point to the free() 
+           function. This means that when the new context starts executing, it will immediately call
+           free() to free the memory used by the stack.
+        -  we use swapcontext() to switch to the new context we just created. This will cause the calling 
+           thread to be terminated and the new context to start executing
+
+
+One potential issue is that the uc_stack.ss_sp field was allocated using malloc, 
+which means that it is not necessarily aligned to the same memory page boundaries as 
+the rest of the stack. If this memory is not aligned properly, freeing it can cause memory errors.
+
+
+ordonnecement :round-robin scheduler
